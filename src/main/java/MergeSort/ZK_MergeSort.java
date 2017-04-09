@@ -82,30 +82,39 @@ public class ZK_MergeSort implements Callable<String>  {
 			}
 
 
-			ArrayList<int[]> a = new ArrayList<int[]>();
-			while (a.size() != 3) {
+			ArrayList<int[]> resultParts = new ArrayList<int[]>();
+			while (resultParts.size() != 3) {
 				int[] rs = results.consume();
-				a.add(rs);
+				resultParts.add(rs);
 			}
 
-			int[] finalresult =finalMerge(a);
-			for (int x : finalresult) {
-				System.out.print(x + " ");
-			}
-			System.out.println();
+			int[] finalresult =finalMerge(resultParts);
+			System.out.println(name+"report final result: "+Arrays.toString(finalresult));
+			
+			return "done";
 			
 		} else {
+			
+			if(leader){
+				ArrayList<int[]> resultParts = new ArrayList<int[]>();
+				
+				while (resultParts.size() != 3) {
+					int[] rs = results.consume();
+					resultParts.add(rs);
+				}
+
+				int[] finalresult =finalMerge(resultParts);
+				System.out.println(name+"report final result: "+Arrays.toString(finalresult));
+			}
+			
 			System.out.println("follower start");
 			
 			int[] info = tasks.consume();
 			mergeSort(info);
 			results.produce(info);
+			System.out.println(Arrays.toString(info)+" "+"from "+name);
+			
 
-			for (int x : info) {
-				System.out.print(x + " ");
-			}
-			System.out.print("from "+name);
-			System.out.println();
 		}
 
 		return "done";
