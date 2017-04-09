@@ -81,12 +81,14 @@ public class ZK_MergeSort implements Callable<String>  {
 				tasks.produce(a);
 			}
 
-
 			ArrayList<int[]> resultParts = new ArrayList<int[]>();
 			while (resultParts.size() != 3) {
 				int[] rs = results.consume();
 				resultParts.add(rs);
 			}
+			
+			
+			
 
 			int[] finalresult =finalMerge(resultParts);
 			System.out.println(name+"report final result: "+Arrays.toString(finalresult));

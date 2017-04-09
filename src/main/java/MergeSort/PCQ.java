@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.zookeeper.CreateMode;
@@ -116,6 +117,18 @@ public class PCQ implements Watcher{
             }
        }
     }
+    
+    ArrayList<int[]> consumeAll() throws KeeperException, InterruptedException{
+    	ArrayList<int[]> parts= new ArrayList<int[]>();
+    	List<String> list = zk.getChildren(root, true);
+    	for(String s:list){
+    		byte[] b = zk.getData(root + "/element" + s, false, null);
+    		int[] a=(int[]) deserialize(b);
+    		parts.add(a);
+    	}
+    	return parts;
+    }
+    
     
     
     public static byte[] serialize(Object obj)  {
