@@ -19,7 +19,7 @@ public class ZK_Main {
 		ArrayList<Future<String>> futures=new ArrayList<Future<String>> ();	
 		ArrayList<Callable<String>> processes=new ArrayList<Callable<String>> ();	
 		PCQ  tasksQ = new PCQ("localhost:2181", "/app1");
-		PCQ  resultsQ = new PCQ("localhost:2181", "/app2");
+		PCQ resultsQ = new PCQ("localhost:2181", "/app2");
 		
 		int[] input = {100, 33, 111, 63, 67, 886};
 		int numServer=4;

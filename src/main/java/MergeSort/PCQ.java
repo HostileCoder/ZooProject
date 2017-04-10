@@ -14,6 +14,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
@@ -22,6 +23,7 @@ public class PCQ implements Watcher{
     static ZooKeeper zk = null;
     static Integer mutex;
     String root;
+    private volatile int count=0;
     
 	public PCQ(String address, String name){
         if(zk == null){
@@ -56,15 +58,20 @@ public class PCQ implements Watcher{
         
 	}
 
+	
     synchronized public void process(WatchedEvent event) {
         synchronized (mutex) {
             //System.out.println("Process: " + event.getType());
-            mutex.notify();
+            mutex.notify();               
         }
+        
+	
     }
 
     
     boolean produce(int[] i) throws KeeperException, InterruptedException{
+    	
+
 //        ByteBuffer b = ByteBuffer.allocate(4);
         byte[] value;
 
@@ -76,7 +83,9 @@ public class PCQ implements Watcher{
         
         zk.create(root + "/element", value, Ids.OPEN_ACL_UNSAFE,
                     CreateMode.PERSISTENT_SEQUENTIAL);
-
+        
+     
+        count++;
         return true;
     }
     
@@ -104,7 +113,7 @@ public class PCQ implements Watcher{
                                                               
                     byte[] b = zk.getData(root + "/element" + nodeName,
                                 false, stat);
-                              
+  
                     zk.delete(root + "/element" + nodeName, 0);
 //                    ByteBuffer buffer = ByteBuffer.wrap(b);
 //                    retvalue = buffer.getInt();
@@ -122,13 +131,13 @@ public class PCQ implements Watcher{
     	ArrayList<int[]> parts= new ArrayList<int[]>();
     	List<String> list = zk.getChildren(root, true);
     	for(String s:list){
-    		byte[] b = zk.getData(root + "/element" + s, false, null);
+
+    		byte[] b = zk.getData(root +"/" +s, false, null);
     		int[] a=(int[]) deserialize(b);
     		parts.add(a);
     	}
     	return parts;
     }
-    
     
     
     public static byte[] serialize(Object obj)  {
@@ -173,26 +182,30 @@ public class PCQ implements Watcher{
 	    return o;
 	}
     
+	
+	public int getCount(){
+		return count;
+	}
     
-    public static void main(String args[]) throws KeeperException, InterruptedException {
-    	PCQ q = new PCQ("localhost:2181", "/app1");
-
-        System.out.println("Input: " + args[0]);
-
-
-      	int[] x={34,2323,565,3434};
-      	int[] y={45,23,67,232,57};
-        System.out.println("Producer");
-                    q.produce(x);
-                    q.produce(y);
-
-        System.out.println("Consumer");
-               for(int i=0;i<2;i++){
-                    int[] r = q.consume();
-                    System.out.println("Item: " + r[0]);
- 
-               }
-
-    }
+//    public static void main(String args[]) throws KeeperException, InterruptedException {
+//    	PCQ q = new PCQ("localhost:2181", "/app1");
+//
+//        System.out.println("Input: " + args[0]);
+//
+//
+//      	int[] x={34,2323,565,3434};
+//      	int[] y={45,23,67,232,57};
+//        System.out.println("Producer");
+//                    q.produce(x);
+//                    q.produce(y);
+//
+//        System.out.println("Consumer");
+//               for(int i=0;i<2;i++){
+//                    int[] r = q.consume();
+//                    System.out.println("Item: " + r[0]);
+// 
+//               }
+//
+//    }
     
 }

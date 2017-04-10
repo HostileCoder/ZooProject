@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 
@@ -34,8 +35,10 @@ public class ZK_MergeSort implements Callable<String>  {
 	private String watchedNodePath;
 	private String name;
 	private boolean leader=false;
+	private boolean removed=false;
 	private PCQ tasks=null;
 	private PCQ results=null;
+	
 	
 	public ZK_MergeSort(String name, int[] values, int id, String zkURL, PCQ tasks, PCQ results) throws IOException  {
 		
@@ -82,44 +85,49 @@ public class ZK_MergeSort implements Callable<String>  {
 			}
 
 			ArrayList<int[]> resultParts = new ArrayList<int[]>();
-			while (resultParts.size() != 3) {
-				int[] rs = results.consume();
-				resultParts.add(rs);
+			
+		
+			while (results.getCount()!=3) {
+
 			}
 			
-			
-			
+			resultParts= results.consumeAll();
+							
 
 			int[] finalresult =finalMerge(resultParts);
-			System.out.println(name+"report final result: "+Arrays.toString(finalresult));
+			System.out.println(name+" report final result: "+Arrays.toString(finalresult));
 			
 			return "done";
 			
 		} else {
-			
-			if(leader){
-				ArrayList<int[]> resultParts = new ArrayList<int[]>();
-				
-				while (resultParts.size() != 3) {
-					int[] rs = results.consume();
-					resultParts.add(rs);
-				}
-
-				int[] finalresult =finalMerge(resultParts);
-				System.out.println(name+"report final result: "+Arrays.toString(finalresult));
-			}
-			
-			System.out.println("follower start");
-			
+						
+			System.out.println("follower start");		
 			int[] info = tasks.consume();
 			mergeSort(info);
+			Thread.sleep(new Random().nextInt(5000));
 			results.produce(info);
 			System.out.println(Arrays.toString(info)+" "+"from "+name);
 			
+			
+			while(leader==false){
+				
+			}
+					
+			ArrayList<int[]> resultParts = new ArrayList<int[]>();
+			while (results.getCount() != 3) {
 
+			}
+			resultParts = results.consumeAll();
+
+			int[] finalresult = finalMerge(resultParts);
+			System.out.println(name + " report final result: " + Arrays.toString(finalresult));
+			return "done";
+		
+			
+		
 		}
 
-		return "done";
+		//return "done";
 	}
 	
 	public class ProcessNodeWatcher implements Watcher{
@@ -133,9 +141,10 @@ public class ZK_MergeSort implements Callable<String>  {
 				if(event.getPath().equalsIgnoreCase(watchedNodePath)) {
 					attemptForLeaderPosition();
 				}
-			}
-			
-		}		
+			}			
+		}	
+		
+		
 	}
 	
 	//modified boolean leader
