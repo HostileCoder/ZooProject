@@ -34,7 +34,7 @@ public class ZK_MergeSort implements Callable<String>  {
 	private String processNodePath;
 	private String watchedNodePath;
 	private String name;
-	private volatile boolean leader=false; 
+	private  boolean leader=false; 
 	private volatile boolean removed=false;
 	private PCQ tasks=null;
 	private PCQ results=null;
@@ -92,9 +92,11 @@ public class ZK_MergeSort implements Callable<String>  {
 				
 			//mod
 			final List<String> childNodePaths = zooKeeperService.getChildren(LEADER_ELECTION_ROOT_NODE, false);
-			if(!childNodePaths.contains(processNodePath)){
+			
+			if(!childNodePaths.contains(processNodePath.substring(processNodePath.lastIndexOf('/') + 1))){
 				System.out.println(processNodePath+" no longer exit");
-				return "removed";
+				while (true) {
+				}
 			}
 			
 			
@@ -158,7 +160,8 @@ public class ZK_MergeSort implements Callable<String>  {
 		final List<String> childNodePaths = zooKeeperService.getChildren(LEADER_ELECTION_ROOT_NODE, false);
 			
 		Collections.sort(childNodePaths);
-		
+			
+		//  /p_0000000001--->p_0000000001   (+1)
 		int index = childNodePaths.indexOf(processNodePath.substring(processNodePath.lastIndexOf('/') + 1));
 	
 		//execute something
@@ -169,6 +172,7 @@ public class ZK_MergeSort implements Callable<String>  {
 			}
 		} else {
 			final String watchedNodeShortPath = childNodePaths.get(index - 1);
+		
 			
 			watchedNodePath = LEADER_ELECTION_ROOT_NODE + "/" + watchedNodeShortPath;
 			

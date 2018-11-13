@@ -80,7 +80,7 @@ public class PCQ implements Watcher{
 //        value = b.array();
         
         value=serialize(i);
-        
+        //create a child call element#
         zk.create(root + "/element", value, Ids.OPEN_ACL_UNSAFE,
                     CreateMode.PERSISTENT_SEQUENTIAL);
         
